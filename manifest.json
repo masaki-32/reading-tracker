@@ -1,0 +1,16 @@
+{
+  "name": "読書だな",
+  "short_name": "読書だな",
+  "description": "表紙・引用・読書期間を記録する個人用読書管理アプリ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ECE6D8",
+  "theme_color": "#2E4372",
+  "lang": "ja",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
