@@ -1,4 +1,4 @@
-const CACHE_NAME = "reading-tracker-shell-v5";
+const CACHE_NAME = "reading-tracker-shell-v6";
 const SHELL_FILES = ["./index.html", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", (event) => {
