@@ -1,7 +1,8 @@
 # 決定事項・運用ルール
 
 ## デプロイ運用
-- Gitリポジトリ管理はせず、GitHub Web UI（https://github.com/masaki-32/reading-tracker の「Add file → Upload files」）から手動アップロードする運用。CI/CDは導入しない
+- 通常のデプロイはGitHub Web UI（https://github.com/masaki-32/reading-tracker の「Add file → Upload files」）から手動アップロードする運用。CI/CDは導入しない
+- 2026-09-08、念のためのバックアップとしてこのフォルダをgit管理下に置き、既存のGitHubリポジトリ（origin, branch: main）と接続・push済み。これにより`git add / commit / push`でも反映できる状態になったが、日常の反映は引き続き手動アップロードで行う想定（切り替えたい場合はユーザーの指示を待つ）
 - Cloudflare Workerの反映はダッシュボードの「Edit code」に貼り直して「Deploy」
 - 変更完了報告は次の形式で統一する：
   ```

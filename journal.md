@@ -8,3 +8,4 @@
 - sw.jsのCACHE_NAME上げ忘れにより「iPhoneのホーム画面版・同じタブの再読み込みで更新されない」事象が2回発生。原因調査の上、v4→v5→v6と修正し、以降はindex.html変更時に自動でCACHE_NAMEも上げる運用に変更（[decisions.md](decisions.md)参照）
 - 今後の方向性として「データ同期（最低限は同一端末内の一貫性）」「事業化時の法務・プライバシー対応」を要望として受領、tasks.mdに記録
 - 運用ファイルをmemory（Claude内部記憶）からプロジェクト側のtasks.md/decisions.md/journal.mdに分離（AICEO標準構成に合わせる）
+- 「万が一のため」の要望で、reading-trackerフォルダをgit管理下に置き既存のGitHubリポジトリ（origin/main）と接続。既存の追跡ファイル（icon.svg/index.html/manifest.json/sw.js）は内容一致を確認した上でoriginの履歴にそのまま合流させ、未追跡だったcloudflare-worker.js・tasks.md・decisions.md・journal.mdを新規コミットしてpush済み（コミット be5037d）
