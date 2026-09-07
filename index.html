@@ -189,7 +189,7 @@ select{ padding:8px 10px; border-radius:8px; border:1px solid var(--line); backg
 .help-section summary::-webkit-details-marker{ display:none; }
 .help-section summary .help-title{ font-weight:600; font-size:14.5px; white-space:nowrap; flex-shrink:0; }
 .help-section summary .help-preview{ font-size:12px; color:var(--ink-faint); text-align:right; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.help-section summary .help-chevron{ color:var(--ink-faint); font-size:15px; transition:transform .15s ease; flex-shrink:0; }
+.help-section summary .help-chevron{ color:var(--ink-faint); font-size:34px; line-height:1; transition:transform .15s ease; flex-shrink:0; }
 .help-section[open] summary .help-chevron{ transform:rotate(180deg); }
 .help-section[open] summary .help-preview{ display:none; }
 @media (max-width:400px){ .help-section summary .help-preview{ display:none; } }
@@ -1177,7 +1177,12 @@ textarea{ resize:vertical; min-height:64px; }
     var coverPreview = d.cover ? '<img src="'+esc(d.cover)+'" alt="">' : '';
 
     modalEl.innerHTML =
-      '<div class="modal-head"><h2 class="serif" style="margin:0;font-size:19px;">'+(state.editingId ? "本を編集" : "本を追加")+'</h2><button class="modal-close" id="closeBtn" aria-label="閉じる">✕</button></div>' +
+      '<div class="modal-head"><h2 class="serif" style="margin:0;font-size:19px;">'+(state.editingId ? "本を編集" : "本を追加")+'</h2>' +
+        '<div style="display:flex;gap:6px;align-items:center;">' +
+          '<button class="heart-btn'+(d.favorite?' on':'')+'" type="button" id="btnFavoriteDraft" aria-pressed="'+(!!d.favorite)+'" aria-label="お気に入り">'+(d.favorite?'♥':'♡')+'</button>' +
+          '<button class="modal-close" id="closeBtn" aria-label="閉じる">✕</button>' +
+        '</div>' +
+      '</div>' +
       '<div class="form-grid">' +
         '<div class="full">' +
           '<label>タイトル</label>' +
@@ -1207,6 +1212,11 @@ textarea{ resize:vertical; min-height:64px; }
     document.getElementById("closeBtn").addEventListener("click", closeModal);
     document.getElementById("btnCancel").addEventListener("click", closeModal);
     document.getElementById("btnToggleLookup").addEventListener("click", function(){ syncDraftFromForm(); renderEditForm(!showLookup); });
+    document.getElementById("btnFavoriteDraft").addEventListener("click", function(){
+      syncDraftFromForm();
+      state.draft.favorite = !state.draft.favorite;
+      renderEditForm(showLookup);
+    });
 
     if (showLookup) wireLookupBox();
 
