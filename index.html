@@ -86,6 +86,12 @@ img{ max-width:100%; }
 .today-widget .tw-shuffle:hover{ border-color:var(--accent); color:var(--accent); }
 .today-empty{ font-size:13px; color:var(--ink-faint); }
 
+.info-notice, .action-notice{ display:flex; gap:10px; align-items:flex-start; border-radius:10px; padding:9px 14px; margin-bottom:12px; font-size:12.5px; line-height:1.6; }
+.info-notice{ background:transparent; border:1px solid var(--line); color:var(--ink-soft); }
+.action-notice{ background:var(--paper-raised); border:1px solid var(--warm); color:var(--ink); box-shadow:var(--shadow); }
+.info-notice button, .action-notice button{ background:none; border:none; color:inherit; opacity:.7; cursor:pointer; font-size:16px; line-height:1; padding:0 2px; flex-shrink:0; }
+.info-notice button:hover, .action-notice button:hover{ opacity:1; }
+
 .chart-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:16px 18px 10px; margin-bottom:22px; box-shadow:var(--shadow); }
 .chart-card h2{ margin:0 0 10px; font-size:15px; font-weight:600; color:var(--ink); }
 .chart-wrap{ overflow-x:auto; position:relative; }
@@ -96,7 +102,10 @@ img{ max-width:100%; }
 .chart-value{ font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; fill:var(--ink); font-size:10.5px; font-weight:500; }
 .chart-tooltip{ position:absolute; pointer-events:none; background:var(--ink); color:var(--paper); font-size:11.5px; padding:4px 8px; border-radius:5px; transform:translate(-50%,-130%); white-space:nowrap; opacity:0; transition:opacity .08s ease; z-index:5; }
 
-.toolbar{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:18px; }
+.toolbar{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between; margin-bottom:18px; }
+.filter-group{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; flex:1; min-width:0; }
+.action-group{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding-left:14px; border-left:1px solid var(--line); }
+@media (max-width:760px){ .action-group{ border-left:none; padding-left:0; } }
 .tabs{ display:flex; gap:4px; background:var(--paper-raised); border:1px solid var(--line); border-radius:999px; padding:3px; flex-wrap:wrap; }
 .tab-btn{ border:none; background:transparent; color:var(--ink-soft); padding:6px 13px; border-radius:999px; font-size:12.5px; cursor:pointer; white-space:nowrap; }
 .tab-btn.active{ background:var(--accent); color:var(--accent-ink); }
@@ -112,7 +121,11 @@ select{ padding:8px 10px; border-radius:8px; border:1px solid var(--line); backg
 .btn-danger{ background:transparent; border:1px solid var(--danger); color:var(--danger); }
 .btn-small{ padding:6px 12px; font-size:12.5px; }
 
-.grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:16px; }
+.grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:16px; }
+@media (max-width:480px){
+  .grid{ grid-template-columns:repeat(auto-fill,minmax(98px,1fr)); gap:10px; }
+  .card-body .tag-row{ display:none; }
+}
 .book-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; overflow:hidden; cursor:pointer; box-shadow:var(--shadow); display:flex; flex-direction:column; transition:transform .12s ease; }
 .book-card:hover{ transform:translateY(-2px); }
 .cover{ position:relative; width:100%; aspect-ratio:3/4.3; background:var(--line); overflow:hidden; }
@@ -131,10 +144,8 @@ select{ padding:8px 10px; border-radius:8px; border:1px solid var(--line); backg
 .fav-badge{ position:absolute; top:6px; right:6px; font-size:17px; color:#fff; filter:drop-shadow(0 1px 2px rgba(0,0,0,.55)); pointer-events:none; }
 .tag-row{ display:flex; flex-wrap:wrap; gap:4px; }
 .tag-chip{ font-size:10px; padding:1px 8px; border-radius:999px; background:var(--line); color:var(--ink-soft); }
-.fav-toggle{ border:1px solid var(--line); background:var(--paper-raised); border-radius:999px; padding:7px 14px; font-size:12.5px; cursor:pointer; color:var(--ink-soft); }
-.fav-toggle.active{ border-color:var(--danger); color:var(--danger); background:var(--paper-raised); background:color-mix(in srgb, var(--danger) 12%, var(--paper-raised)); }
-.heart-btn{ border:1px solid var(--line); background:transparent; border-radius:999px; padding:7px 16px; font-size:13.5px; font-weight:600; cursor:pointer; color:var(--ink-soft); }
-.heart-btn.on{ border-color:var(--danger); color:var(--danger); }
+.fav-toggle, .heart-btn{ border:1px solid var(--line); background:var(--paper-raised); border-radius:999px; padding:6px 14px; font-size:12.5px; font-weight:600; cursor:pointer; color:var(--ink-soft); }
+.fav-toggle.active, .heart-btn.on{ border-color:var(--danger); color:var(--danger); background:var(--paper-raised); background:color-mix(in srgb, var(--danger) 12%, var(--paper-raised)); }
 
 .empty{ text-align:center; color:var(--ink-soft); padding:60px 20px; font-size:14px; }
 
@@ -206,6 +217,8 @@ textarea{ resize:vertical; min-height:64px; }
     <div class="stats-row" id="statsRow"></div>
   </header>
 
+  <div id="standaloneNotice"></div>
+  <div id="backupReminder"></div>
   <div id="todayWidget"></div>
 
   <section class="chart-card">
@@ -214,30 +227,34 @@ textarea{ resize:vertical; min-height:64px; }
   </section>
 
   <section class="toolbar">
-    <div class="tabs" id="statusTabs"></div>
-    <div class="search-group">
-      <input id="searchInput" type="text" placeholder="タイトル・著者で検索" />
-      <label class="check-label"><input type="checkbox" id="searchMemoToggle"> メモも検索</label>
+    <div class="filter-group">
+      <div class="tabs" id="statusTabs"></div>
+      <button class="fav-toggle" id="favToggle">♥ お気に入りのみ</button>
+      <div class="search-group">
+        <input id="searchInput" type="text" placeholder="タイトル・著者で検索" />
+        <label class="check-label"><input type="checkbox" id="searchMemoToggle"> メモも検索</label>
+      </div>
+      <select id="tagFilterSelect">
+        <option value="all">すべてのタグ</option>
+      </select>
+      <select id="sortSelect">
+        <option value="updated">更新順</option>
+        <option value="title">タイトル順</option>
+        <option value="start">開始日順</option>
+        <option value="added">追加した順</option>
+      </select>
     </div>
-    <select id="tagFilterSelect">
-      <option value="all">すべてのタグ</option>
-    </select>
-    <button class="fav-toggle" id="favToggle">♥ お気に入りのみ</button>
-    <select id="sortSelect">
-      <option value="updated">更新順</option>
-      <option value="title">タイトル順</option>
-      <option value="start">開始日順</option>
-      <option value="added">追加した順</option>
-    </select>
-    <button class="btn btn-ghost btn-small" id="btnExport" title="バックアップは暗号化されないテキストファイルです。クラウド同期フォルダに保存する際はご注意ください。">書き出し</button>
-    <button class="btn btn-ghost btn-small" id="btnImport">読み込み</button>
-    <input type="file" id="importFile" accept="application/json" hidden>
-    <button class="btn btn-primary" id="addBtnDesktop">+ 本を追加</button>
+    <div class="action-group">
+      <button class="btn btn-ghost btn-small" id="btnExport" title="バックアップは暗号化されないテキストファイルです。クラウド同期フォルダに保存する際はご注意ください。">書き出し</button>
+      <button class="btn btn-ghost btn-small" id="btnImport">読み込み</button>
+      <input type="file" id="importFile" accept="application/json" hidden>
+      <button class="btn btn-primary" id="addBtnDesktop">+ 本を追加</button>
+    </div>
   </section>
 
   <main class="grid" id="bookGrid"></main>
   <p class="empty" id="emptyMsg" hidden></p>
-  <p class="pwa-hint">スマホのブラウザメニューから「ホーム画面に追加」するとアプリのように使えます。本のデータはこの端末・このブラウザだけに保存され、ネットワーク経由で他人や他の端末に送られることはありません。ただし同じ端末・同じブラウザを他人と共有している場合はその人からも見える点にご注意ください。</p>
+  <p class="pwa-hint">スマホのブラウザメニューから「ホーム画面に追加」するとアプリのように使えます。本のデータはこの端末・このブラウザだけに保存され、ネットワーク経由で他人や他の端末に送られることはありません。ただし同じ端末・同じブラウザを他人と共有している場合はその人からも見える点にご注意ください。　<button type="button" id="helpLink" style="background:none;border:none;color:var(--accent);text-decoration:underline;cursor:pointer;font-size:inherit;padding:0;">ヘルプ</button></p>
 </div>
 
 <button class="fab" id="fabAdd" aria-label="本を追加">+</button>
@@ -264,6 +281,7 @@ textarea{ resize:vertical; min-height:64px; }
     sort: "updated",
     editingId: null,
     draft: null,
+    draftBaselineUpdatedAt: null,
     todayOverrideId: null
   };
 
@@ -285,6 +303,16 @@ textarea{ resize:vertical; min-height:64px; }
       return new Promise(function(resolve, reject){
         var tx = idb.transaction(STORE, "readonly");
         var req = tx.objectStore(STORE).getAll();
+        req.onsuccess = function(){ resolve(req.result); };
+        req.onerror = function(){ reject(req.error); };
+      });
+    });
+  }
+  function dbGet(id){
+    return openDb().then(function(idb){
+      return new Promise(function(resolve, reject){
+        var tx = idb.transaction(STORE, "readonly");
+        var req = tx.objectStore(STORE).get(id);
         req.onsuccess = function(){ resolve(req.result); };
         req.onerror = function(){ reject(req.error); };
       });
@@ -361,6 +389,24 @@ textarea{ resize:vertical; min-height:64px; }
     state.books = state.books.filter(function(b){ return b.id !== id; });
     renderAll();
     notifyOtherTabs();
+  }
+
+  // 他のタブ・端末で先に更新されていないか確認する。競合していれば確認ダイアログを出し、
+  // 「上書きして保存する」を選んだ場合は万一に備えて自動でバックアップファイルを残す。
+  async function confirmIfConflict(id, baselineUpdatedAt){
+    if (!id) return true;
+    var latest;
+    try{ latest = await dbGet(id); }catch(e){ return true; }
+    if (!latest) return true;
+    if ((Date.parse(latest.updatedAt) || 0) <= (Date.parse(baselineUpdatedAt) || 0)) return true;
+    var proceed = await showConfirm(
+      "この本は他のタブや端末で先に更新されています。このまま保存すると、その更新内容は失われます。",
+      { title:"更新の競合", okLabel:"上書きして保存する", danger:true }
+    );
+    if (proceed && state.books.length){
+      exportBooks("reading-tracker-safety-backup-before-conflict-" + todayStr() + ".json");
+    }
+    return proceed;
   }
 
   // ---------- 書籍検索 (OpenBD / Google Books経由Cloudflare Worker) ----------
@@ -705,6 +751,7 @@ textarea{ resize:vertical; min-height:64px; }
     renderChart();
     renderTagFilterOptions();
     renderGrid();
+    renderBackupReminder();
   }
 
   // ---------- フォーカストラップ／カスタムダイアログ ----------
@@ -824,6 +871,7 @@ textarea{ resize:vertical; min-height:64px; }
     modalEl.innerHTML = "";
     state.editingId = null;
     state.draft = null;
+    state.draftBaselineUpdatedAt = null;
     if (releaseModalFocusTrap){ releaseModalFocusTrap(); releaseModalFocusTrap = null; }
     if (lastFocusedBeforeModal && document.body.contains(lastFocusedBeforeModal)) lastFocusedBeforeModal.focus();
     lastFocusedBeforeModal = null;
@@ -897,19 +945,28 @@ textarea{ resize:vertical; min-height:64px; }
       var btn = this;
       btn.disabled = true;
       try{
+        if (!(await confirmIfConflict(b.id, b.updatedAt))){ btn.disabled = false; return; }
         await persistBook(Object.assign({}, b, { favorite: !b.favorite, updatedAt: nowIso() }));
         openDetail(id);
       }catch(e){
         btn.disabled = false;
-        await showAlert("更新に失敗しました。\n(" + e + ")", "エラー");
+        console.error("お気に入りの更新に失敗しました", e);
+        await showAlert("更新に失敗しました。もう一度お試しください。", "エラー");
       }
     });
+    var statusChangeInFlight = false;
     async function applyStatusChange(patch){
+      if (statusChangeInFlight) return;
+      statusChangeInFlight = true;
       try{
+        if (!(await confirmIfConflict(b.id, b.updatedAt))) return;
         await persistBook(Object.assign({}, b, patch, { updatedAt: nowIso() }));
         closeModal();
       }catch(e){
-        await showAlert("保存に失敗しました。もう一度お試しください。\n(" + e + ")", "エラー");
+        console.error("ステータス更新に失敗しました", e);
+        await showAlert("保存に失敗しました。もう一度お試しください。", "エラー");
+      }finally{
+        statusChangeInFlight = false;
       }
     }
     var startBtn = document.getElementById("btnStartReading");
@@ -930,21 +987,64 @@ textarea{ resize:vertical; min-height:64px; }
     });
     document.getElementById("btnEdit").addEventListener("click", function(){ openEdit(id); });
     document.getElementById("btnDelete").addEventListener("click", async function(){
-      var ok = await showConfirm('「'+(b.title||"この本")+'」を削除しますか？この操作は取り消せません。', { danger:true, okLabel:"削除する", title:"削除の確認" });
-      if (ok){
-        try{
-          await removeBook(id);
-          closeModal();
-        }catch(e){
-          await showAlert("削除に失敗しました。もう一度お試しください。\n(" + e + ")", "エラー");
-        }
+      var latest;
+      try{ latest = await dbGet(id); }catch(e){ latest = null; }
+      var conflict = !!(latest && (Date.parse(latest.updatedAt) || 0) > (Date.parse(b.updatedAt) || 0));
+      var message = conflict
+        ? 'この本は他のタブや端末で先に更新されています。それでも「'+(b.title||"この本")+'」を削除しますか？この操作は取り消せません。'
+        : '「'+(b.title||"この本")+'」を削除しますか？この操作は取り消せません。';
+      var ok = await showConfirm(message, { danger:true, okLabel:"削除する", title:"削除の確認" });
+      if (!ok) return;
+      if (conflict && state.books.length){
+        exportBooks("reading-tracker-safety-backup-before-conflict-" + todayStr() + ".json");
+      }
+      try{
+        await removeBook(id);
+        closeModal();
+      }catch(e){
+        await showAlert("削除に失敗しました。もう一度お試しください。\n(" + e + ")", "エラー");
       }
     });
+  }
+
+  function openHelp(){
+    state.editingId = null;
+    modalEl.innerHTML =
+      '<div class="modal-head"><h2 class="serif" style="margin:0;font-size:19px;">ヘルプ</h2><button class="modal-close" id="closeBtn" aria-label="閉じる">✕</button></div>' +
+
+      '<div class="section-label">できること</div>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 16px;"><b>タグ</b>：本にジャンルなどの目印を付けて絞り込めます。<b>♥ お気に入り</b>：特に大事な本に印を付けられます。<b>更新の競合検知</b>：他のタブや端末で先に更新されていた場合、上書きしてよいか確認し、必要ならバックアップを自動で残します。</p>' +
+
+      '<div class="section-label">保存場所について</div>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 10px;">本の記録はこの端末・このブラウザだけに保存され、外部には送信されません。同じ端末を家族などと共有している場合は見える点にご注意ください。<br>また「ホーム画面のアイコン」と「ブラウザで直接開く」のは別データとして扱われることがあります（特にiPhone）。どちらか一方の開き方に統一するのがおすすめです。</p>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 16px;">すでに両方にデータがある場合は、①残したい本がある方を開いて「書き出し」→②もう片方にも本があれば同様に「書き出し」→③統一したい方を開いて「読み込み」、で1つにまとめられます。書き出したファイルはiPhoneなら「ファイル」アプリ内の「ダウンロード」に保存され、「読み込み」の時にそこから選べます。読み込みの際、より新しく更新された方が自動的に優先されるので、うっかり古いデータで上書きしてしまう心配はありません。<br>※同じ本を両方に別々に新規登録していた場合（同じ本として認識されないケース）は重複して表示されるので、その分だけ手動で削除してください。</p>' +
+
+      '<div class="section-label">見た目が新しくならない時は</div>' +
+      '<ol style="font-size:13.5px;line-height:1.9;padding-left:20px;margin:0 0 8px;">' +
+        '<li><b>スマホ</b>：アプリを完全に閉じて開き直す<br><b>パソコン</b>：タブを閉じて開き直す</li>' +
+        '<li>直らなければ、ブラウザの設定にある「サイトデータの削除」「キャッシュの削除」を試す（呼び方はブラウザにより異なります）。パソコンならWindowsは<b>Ctrl+Shift+R</b>、Macは<b>⌘+Shift+R</b>でも直ることがあります。</li>' +
+      '</ol>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0;">※サイトデータを消去する操作は、登録した本も一緒に消えることがあります。必ず先に下の「書き出し」でバックアップしてから行ってください。</p>' +
+
+      '<div class="section-label">本のデータを守る（バックアップ）</div>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 10px;"><b>バックアップを取らないとどうなるか：</b>この端末が壊れる・無くす・機種変更する、またはブラウザの「サイトデータを削除」をすると、記録した本・感想・進捗は元に戻せません。（誤って古いバックアップを読み込む事故や、複数の場所で同時に編集した際の上書きは、アプリが自動で防ぎます。端末側で起きることだけは事前の「書き出し」以外に守る方法がありません。）</p>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 10px;">「書き出し」で本のデータをファイルに保存できます。機種変更や不具合に備えて定期的に保存しておくと安心です。消えてしまっても「読み込み」で復元できます。<br>※ファイルは暗号化されていないので、共有フォルダへの保存はご注意ください。</p>' +
+      '<label class="check-label" style="font-size:12.5px;"><input type="checkbox" id="backupReminderToggle"'+(isBackupReminderEnabled()?' checked':'')+'> バックアップの案内を表示する</label>' +
+
+      '<div class="actions-row"><button class="btn btn-primary" id="closeHelpBtn">閉じる</button></div>';
+    showModal();
+    document.getElementById("backupReminderToggle").addEventListener("change", function(e){
+      try{ localStorage.setItem("backup_reminder_disabled", e.target.checked ? "0" : "1"); }catch(err){}
+      renderBackupReminder();
+    });
+    document.getElementById("closeBtn").addEventListener("click", closeModal);
+    document.getElementById("closeHelpBtn").addEventListener("click", closeModal);
   }
 
   function openEdit(id){
     var existing = id ? findBook(id) : null;
     state.editingId = id || null;
+    state.draftBaselineUpdatedAt = existing ? existing.updatedAt : null;
     state.draft = existing ? Object.assign({}, existing) : {
       title:"", author:"", publisher:"", isbn:"", status:"unread", pages:null, currentPage:null,
       startDate:"", endDate:"", rating:0, summary1liner:"", quotes:"", actionPlan:"", cover:null,
@@ -984,7 +1084,7 @@ textarea{ resize:vertical; min-height:64px; }
         '<div><label>総ページ数</label><input type="number" id="fPages" min="0" value="'+(d.pages!=null?d.pages:"")+'"></div>' +
         '<div><label>現在のページ</label><input type="number" id="fCurrent" min="0" value="'+(d.currentPage!=null?d.currentPage:"")+'"></div>' +
         '<div class="full"><label>表紙画像</label><div class="cover-upload"><div class="cover-preview" id="coverPreview">'+coverPreview+'</div><input type="file" id="fCover" accept="image/*"></div></div>' +
-        '<div class="full"><label>評価</label><div class="star-edit" id="starEdit">'+starsEdit+'</div></div>' +
+        '<div class="full"><label>評価</label><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div class="star-edit" id="starEdit">'+starsEdit+'</div>'+(d.rating ? '<button type="button" class="btn btn-ghost btn-small" id="btnClearRating">評価をクリア</button>' : '')+'</div></div>' +
         '<div class="full"><label>1行要約</label><input type="text" id="fSummary1" value="'+esc(d.summary1liner||"")+'" placeholder="この本を一言でいうと"></div>' +
         '<div class="full"><label>心に残った引用・フレーズ（1行に1つ）</label><textarea id="fQuotes" placeholder="印象に残った一文を1行ずつ">'+esc(d.quotes||"")+'</textarea></div>' +
         '<div class="full"><label>自分へのアクションプラン</label><textarea id="fPlan" placeholder="この本を読んで、次に何をするか">'+esc(d.actionPlan||"")+'</textarea></div>' +
@@ -1007,6 +1107,12 @@ textarea{ resize:vertical; min-height:64px; }
         state.draft.rating = (state.draft.rating === v) ? 0 : v;
         renderEditForm(showLookup);
       });
+    });
+    var clearRatingBtn = document.getElementById("btnClearRating");
+    if (clearRatingBtn) clearRatingBtn.addEventListener("click", function(){
+      syncDraftFromForm();
+      state.draft.rating = 0;
+      renderEditForm(showLookup);
     });
     document.getElementById("fCover").addEventListener("change", function(e){
       var file = e.target.files[0];
@@ -1051,12 +1157,13 @@ textarea{ resize:vertical; min-height:64px; }
       d.quotes = document.getElementById("fQuotes").value;
       d.actionPlan = document.getElementById("fPlan").value;
       if (!d.title){ await showAlert("タイトルを入力してください", "確認"); return; }
-      d.updatedAt = nowIso();
-      if (!state.editingId) d.createdAt = nowIso();
-      if (state.editingId) d.id = state.editingId;
       var saveBtn = this;
       saveBtn.disabled = true;
       try{
+        if (!(await confirmIfConflict(state.editingId, state.draftBaselineUpdatedAt))){ saveBtn.disabled = false; return; }
+        d.updatedAt = nowIso();
+        if (!state.editingId) d.createdAt = nowIso();
+        if (state.editingId) d.id = state.editingId;
         await persistBook(d);
         closeModal();
       }catch(e){
@@ -1150,17 +1257,49 @@ textarea{ resize:vertical; min-height:64px; }
     });
   }
 
-  function exportBooks(){
+  function exportBooks(filename){
     var data = JSON.stringify(state.books, null, 2);
     var blob = new Blob([data], { type: "application/json" });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
-    a.download = "reading-tracker-backup-" + todayStr() + ".json";
+    a.download = filename || ("reading-tracker-backup-" + todayStr() + ".json");
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    if (!filename){
+      try{ localStorage.setItem("last_export_at", String(Date.now())); }catch(e){}
+      renderBackupReminder();
+    }
+  }
+
+  function isBackupReminderEnabled(){
+    try{ return localStorage.getItem("backup_reminder_disabled") !== "1"; }catch(e){ return true; }
+  }
+
+  function renderBackupReminder(){
+    var el = document.getElementById("backupReminder");
+    if (!el) return;
+    if (!isBackupReminderEnabled() || state.books.length < 10){ el.innerHTML = ""; el.className = ""; return; }
+    var lastExport = 0, dismissedAt = 0;
+    try{
+      lastExport = parseInt(localStorage.getItem("last_export_at") || "0", 10) || 0;
+      dismissedAt = parseInt(localStorage.getItem("backup_reminder_dismissed_at") || "0", 10) || 0;
+    }catch(e){}
+    var now = Date.now();
+    var daysSinceExport = lastExport ? (now - lastExport) / 86400000 : Infinity;
+    var daysSinceDismiss = dismissedAt ? (now - dismissedAt) / 86400000 : Infinity;
+    if (daysSinceExport < 14 || daysSinceDismiss < 30){
+      el.innerHTML = ""; el.className = "";
+      return;
+    }
+    el.className = "action-notice";
+    el.innerHTML = '<span>📦 本が'+state.books.length+'冊登録されています。もしもの時に備えて「書き出し」でバックアップを取ることをおすすめします。</span><button type="button" id="dismissBackupReminder" aria-label="閉じる">✕</button>';
+    document.getElementById("dismissBackupReminder").addEventListener("click", function(){
+      el.innerHTML = ""; el.className = "";
+      try{ localStorage.setItem("backup_reminder_dismissed_at", String(Date.now())); }catch(e){}
+    });
   }
 
   function clampStr(s, max){
@@ -1217,15 +1356,40 @@ textarea{ resize:vertical; min-height:64px; }
     var candidates = data.filter(function(b){ return b && typeof b === "object" && b.id && b.title; });
     if (!candidates.length){ await showAlert("読み込める本のデータが見つかりませんでした。", "エラー"); return; }
     var valid = candidates.map(sanitizeImportedBook);
-    var ok = await showConfirm(valid.length + "件の本をインポートします。同じIDの本は上書きされます。よろしいですか？", { title:"インポートの確認", okLabel:"インポートする" });
+
+    var existingById = {};
+    state.books.forEach(function(b){ existingById[b.id] = b; });
+    var toWrite = [], added = 0, updated = 0, skippedOlder = 0;
+    valid.forEach(function(imp){
+      var cur = existingById[imp.id];
+      if (!cur){
+        toWrite.push(imp);
+        added++;
+      } else if ((Date.parse(imp.updatedAt) || 0) >= (Date.parse(cur.updatedAt) || 0)){
+        toWrite.push(imp);
+        updated++;
+      } else {
+        skippedOlder++;
+      }
+    });
+
+    var summary = "新規追加 " + added + "件、更新 " + updated + "件" + (skippedOlder ? "、現在のデータの方が新しいためスキップ " + skippedOlder + "件" : "") + "。";
+    if (!toWrite.length){
+      await showAlert("反映できる内容がありませんでした。\n" + summary + "\n（現在のデータの方が新しいか、すでに同じ内容です）", "変更なし");
+      return;
+    }
+    var ok = await showConfirm(summary + "\n\n進めてよろしいですか？（念のため、今のデータの控えを自動で保存してから実行します）", { title:"インポートの確認", okLabel:"インポートする" });
     if (!ok) return;
     try{
-      await dbPutMany(valid);
+      if (state.books.length){
+        exportBooks("reading-tracker-safety-backup-before-import-" + todayStr() + ".json");
+      }
+      await dbPutMany(toWrite);
       var books = await dbGetAll();
       state.books = books || [];
       renderAll();
       notifyOtherTabs();
-      await showAlert("インポートが完了しました（" + valid.length + "件）。", "完了");
+      await showAlert("インポートが完了しました。\n" + summary, "完了");
     }catch(e){
       await showAlert("インポート中にエラーが発生しました。データは反映されていません。\n(" + e + ")", "エラー");
     }
@@ -1233,6 +1397,7 @@ textarea{ resize:vertical; min-height:64px; }
 
   document.getElementById("addBtnDesktop").addEventListener("click", function(){ openEdit(null); });
   document.getElementById("fabAdd").addEventListener("click", function(){ openEdit(null); });
+  document.getElementById("helpLink").addEventListener("click", openHelp);
   document.getElementById("searchInput").addEventListener("input", function(e){ state.search = e.target.value; renderGrid(); });
   document.getElementById("searchMemoToggle").addEventListener("change", function(e){ state.searchMemo = e.target.checked; renderGrid(); });
   document.getElementById("sortSelect").addEventListener("change", function(e){ state.sort = e.target.value; renderGrid(); });
@@ -1242,7 +1407,7 @@ textarea{ resize:vertical; min-height:64px; }
     this.classList.toggle("active", state.favOnly);
     renderGrid();
   });
-  document.getElementById("btnExport").addEventListener("click", exportBooks);
+  document.getElementById("btnExport").addEventListener("click", function(){ exportBooks(); });
   document.getElementById("btnImport").addEventListener("click", function(){ document.getElementById("importFile").click(); });
   document.getElementById("importFile").addEventListener("change", function(e){
     var file = e.target.files[0];
@@ -1251,6 +1416,22 @@ textarea{ resize:vertical; min-height:64px; }
   });
 
   renderTabs();
+
+  (function checkStandalone(){
+    if (window.navigator.standalone !== true) return;
+    var dismissed = false;
+    try{ dismissed = localStorage.getItem("standalone_notice_dismissed") === "1"; }catch(e){}
+    if (dismissed) return;
+    var el = document.getElementById("standaloneNotice");
+    if (!el) return;
+    el.className = "info-notice";
+    el.innerHTML = '<span>ℹ️ ホーム画面から起動中です。ブラウザで直接開いた場合とは別データとして扱われることがあります（詳しくは下の「ヘルプ」参照）。</span><button type="button" id="dismissStandaloneNotice" aria-label="閉じる">✕</button>';
+    document.getElementById("dismissStandaloneNotice").addEventListener("click", function(){
+      el.innerHTML = "";
+      el.className = "";
+      try{ localStorage.setItem("standalone_notice_dismissed", "1"); }catch(e){}
+    });
+  })();
 
   dbGetAll().then(function(books){
     state.books = books || [];
