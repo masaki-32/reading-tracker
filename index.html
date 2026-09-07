@@ -9,7 +9,7 @@
 <!-- 多層防御用のCSP。GitHub Pagesはレスポンスヘッダーを設定できないためmetaで代替
      （frame-ancestorsはmetaタグでは効かない仕様上の制約があるため未指定）。
      connect-srcはBOOKS_PROXY_URL（index.html内のJS）と同じ値に保つこと。 -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://reading-tracker-books.ito24116st30.workers.dev https://api.openbd.jp; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://reading-tracker-books.ito24116st30.workers.dev https://api.openbd.jp https://openlibrary.org; object-src 'none'; base-uri 'self'; form-action 'self';">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icon.svg">
@@ -119,7 +119,7 @@ img{ max-width:100%; }
 .search-group{ display:flex; align-items:center; gap:8px; }
 #searchInput{ flex:1; min-width:140px; padding:8px 12px; border-radius:8px; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); font-size:13.5px; }
 .check-label{ display:flex; align-items:center; gap:5px; font-size:12px; color:var(--ink-soft); white-space:nowrap; }
-#searchInput:focus, select:focus, button:focus-visible, input:focus-visible, [role="button"]:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+#searchInput:focus, select:focus, button:focus-visible, input:focus-visible, [role="button"]:focus-visible, summary:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
 select{ padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); font-size:13px; }
 .btn{ border:none; border-radius:999px; padding:9px 18px; font-size:13.5px; font-weight:600; cursor:pointer; }
 .btn-primary{ background:var(--accent); color:var(--accent-ink); }
@@ -184,6 +184,16 @@ select{ padding:8px 10px; border-radius:8px; border:1px solid var(--line); backg
 .summary-line{ font-family:'Fraunces','Noto Serif JP',serif; font-size:16px; margin:14px 0 6px; text-wrap:balance; }
 .quote-block{ border-left:3px solid var(--warm); background:var(--paper); padding:8px 14px; margin:8px 0; font-size:13.5px; font-style:italic; color:var(--ink-soft); border-radius:0 6px 6px 0; }
 .section-label{ font-size:11px; letter-spacing:.04em; color:var(--ink-faint); text-transform:uppercase; margin:14px 0 4px; }
+.help-section{ border-bottom:1px solid var(--line); padding:10px 0; }
+.help-section summary{ cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center; gap:10px; min-width:0; }
+.help-section summary::-webkit-details-marker{ display:none; }
+.help-section summary .help-title{ font-weight:600; font-size:13.5px; white-space:nowrap; flex-shrink:0; }
+.help-section summary .help-preview{ font-size:11.5px; color:var(--ink-faint); text-align:right; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.help-section summary .help-chevron{ color:var(--ink-faint); font-size:11px; transition:transform .15s ease; flex-shrink:0; }
+.help-section[open] summary .help-chevron{ transform:rotate(180deg); }
+.help-section[open] summary .help-preview{ display:none; }
+@media (max-width:400px){ .help-section summary .help-preview{ display:none; } }
+.help-body{ padding-top:10px; }
 .plan-box{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:13.5px; white-space:pre-wrap; line-height:1.7; }
 .actions-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
 
@@ -216,6 +226,7 @@ textarea{ resize:vertical; min-height:64px; }
 .lookup-item:hover{ background:var(--paper-raised); border-color:var(--line); }
 .lookup-item img{ width:32px; height:44px; object-fit:cover; border-radius:3px; background:var(--line); flex-shrink:0; }
 .lookup-item .li-title{ font-size:12.5px; font-weight:600; }
+.lookup-item .li-source{ font-size:9.5px; font-weight:500; color:var(--ink-faint); background:var(--line); border-radius:4px; padding:1px 5px; margin-left:6px; vertical-align:middle; }
 .lookup-item .li-author{ font-size:11px; color:var(--ink-soft); }
 .pwa-hint{ font-size:11.5px; color:var(--ink-faint); text-align:center; margin-top:30px; }
 </style>
@@ -429,6 +440,10 @@ textarea{ resize:vertical; min-height:64px; }
 
   // ---------- 書籍検索 (OpenBD / Google Books経由Cloudflare Worker) ----------
   var BOOKS_PROXY_URL = "https://reading-tracker-books.ito24116st30.workers.dev/search";
+  // cloudflare-worker.js の CACHE_VERSION と同じ値に保つこと。ここが変わらないと
+  // リクエストURLが変化せず、ブラウザ自身のHTTPキャッシュ（Cache-Control: max-age=7日）
+  // に古い検索結果が残り続けてしまう（Worker側のエッジキャッシュを分けても無意味）。
+  var CLIENT_CACHE_VERSION = "v2";
   var lastLookupError = "";
 
   function describeGoogleError(err){
@@ -447,7 +462,7 @@ textarea{ resize:vertical; min-height:64px; }
       if (!isbn13) ids.forEach(function(i){ if (i.type === "ISBN_10") isbn13 = i.identifier; });
       var cover = (v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail)) || "";
       cover = cover.replace("http://", "https://");
-      return { title:v.title||"", author:(v.authors||[]).join("、"), publisher:v.publisher||"", isbn:isbn13, cover:cover, ratingsCount:v.ratingsCount||0 };
+      return { title:v.title||"", author:(v.authors||[]).join("、"), publisher:v.publisher||"", isbn:isbn13, cover:cover, ratingsCount:v.ratingsCount||0, source:"Google Books" };
     });
   }
 
@@ -469,7 +484,7 @@ textarea{ resize:vertical; min-height:64px; }
     if (!query) return [];
     lastLookupError = "";
     try{
-      var res = await fetch(BOOKS_PROXY_URL + "?q=" + encodeURIComponent(query));
+      var res = await fetch(BOOKS_PROXY_URL + "?v=" + CLIENT_CACHE_VERSION + "&q=" + encodeURIComponent(query));
       var data = await res.json();
       if (data.error){
         lastLookupError = describeGoogleError(data.error);
@@ -485,6 +500,63 @@ textarea{ resize:vertical; min-height:64px; }
       lastLookupError = "通信エラーが発生しました。ネットワーク接続を確認してください。";
       return null;
     }
+  }
+
+  // Open Library：無料・無制限・キー不要の書誌データベース。Google Booksが
+  // 実質20件程度しか返さないのを補うため、タイトル検索の候補を追加で増やす。
+  async function searchOpenLibrary(query){
+    try{
+      // 外部サービスが低速・無応答でも検索全体が固まらないよう、5秒でタイムアウトする。
+      var res = await fetch(
+        "https://openlibrary.org/search.json?limit=20&fields=title,author_name,isbn,cover_i,publisher,edition_count&q=" + encodeURIComponent(query),
+        { signal: AbortSignal.timeout(5000) }
+      );
+      var data = await res.json();
+      if (!data.docs) return [];
+      return data.docs.map(function(d){
+        var isbn = (d.isbn && d.isbn[0]) || "";
+        var cover = d.cover_i ? ("https://covers.openlibrary.org/b/id/" + d.cover_i + "-M.jpg") : "";
+        return {
+          title: d.title || "",
+          author: (d.author_name || []).join("、"),
+          publisher: (d.publisher && d.publisher[0]) || "",
+          isbn: isbn,
+          cover: cover,
+          ratingsCount: 0,
+          source: "Open Library"
+        };
+      });
+    }catch(e){ return []; }
+  }
+
+  var lastSearchPartial = false;
+
+  // ISBN-10とISBN-13は桁数が違うだけで同じ本を指すことが多いため、末尾のチェック
+  // digitと先頭の"978"を除いた9桁の中核部分だけを比較キーにする（重複除去の精度向上）。
+  function isbnCore(isbn){
+    var digits = (isbn||"").replace(/[^0-9Xx]/gi, "");
+    if (digits.length === 13 && digits.slice(0,3) === "978") return digits.slice(3, 12);
+    if (digits.length === 10) return digits.slice(0, 9);
+    return digits;
+  }
+
+  async function searchByTitleCombined(query){
+    lastSearchPartial = false;
+    var results = await Promise.all([searchGoogleBooks(query), searchOpenLibrary(query)]);
+    var googleResults = results[0];
+    var openLibResults = results[1];
+    if (googleResults === null && !openLibResults.length) return null;
+    if (googleResults === null) lastSearchPartial = true;
+    var combined = googleResults || [];
+    var seenIsbn = {};
+    combined.forEach(function(it){ var core = isbnCore(it.isbn); if (core) seenIsbn[core] = true; });
+    openLibResults.forEach(function(it){
+      var core = isbnCore(it.isbn);
+      if (core && seenIsbn[core]) return;
+      if (core) seenIsbn[core] = true;
+      combined.push(it);
+    });
+    return combined;
   }
 
   // ---------- derived data ----------
@@ -1034,38 +1106,43 @@ textarea{ resize:vertical; min-height:64px; }
     modalEl.innerHTML =
       '<div class="modal-head"><h2 class="serif" style="margin:0;font-size:19px;">ヘルプ</h2><button class="modal-close" id="closeBtn" aria-label="閉じる">✕</button></div>' +
 
-      '<div class="section-label">できること</div>' +
-      '<ul style="font-size:13.5px;line-height:1.8;padding-left:20px;margin:0 0 16px;">' +
+      '<details class="help-section" open><summary><span class="help-title">できること</span><span class="help-preview">タグ・お気に入り・書き出し／読み込みなど</span><span class="help-chevron" aria-hidden="true">▾</span></summary><div class="help-body">' +
+      '<ul style="font-size:13.5px;line-height:1.8;padding-left:20px;margin:0;">' +
         '<li><b>タグ</b>：ジャンルなどで本を絞り込める</li>' +
         '<li><b>♥ お気に入り</b>：大事な本に印を付けられる</li>' +
         '<li><b>更新の競合検知</b>：他の端末で先に更新されていたら警告し、必要ならバックアップを自動で残す</li>' +
+        '<li><b>書き出し／読み込み</b>：画面上部のボタンから、今の本棚データを1つのファイルとして保存（書き出し）したり、そのファイルから本棚を復元（読み込み）したりできる。バックアップに使う</li>' +
       '</ul>' +
+      '</div></details>' +
 
-      '<div class="section-label">保存場所について</div>' +
-      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 10px;">本の記録はこの端末・このブラウザだけに保存され、外部には送信されません。家族と端末を共有している場合は見える点にご注意ください。<br>「ホーム画面のアイコン」と「ブラウザで直接開く」は別データになることがあります（特にiPhone）。どちらかに統一するのがおすすめです。</p>' +
-      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 4px;">すでに両方にデータがある場合、次の手順で1つにまとめられます。</p>' +
-      '<ol style="font-size:13.5px;line-height:1.8;padding-left:20px;margin:0 0 8px;">' +
-        '<li>残したい本がある方を開いて「書き出し」</li>' +
-        '<li>もう片方にも本があれば同様に「書き出し」</li>' +
-        '<li>統一したい方を開いて「読み込み」</li>' +
-      '</ol>' +
-      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 16px;">書き出したファイルはiPhoneなら「ファイル」アプリの「ダウンロード」にあります。新しい方が自動で優先されるので古いデータで上書きされる心配はありません。<br>※同じ本を両方に別々に登録していた場合は重複するので、手動で削除してください。</p>' +
-
-      '<div class="section-label">見た目が新しくならない時は</div>' +
-      '<ol style="font-size:13.5px;line-height:1.8;padding-left:20px;margin:0 0 8px;">' +
-        '<li><b>スマホ</b>：アプリを完全に閉じて開き直す（切り替えるだけでなく、一覧から消して開き直す）／<b>パソコン</b>：タブを閉じて開き直す</li>' +
-        '<li>本当に直っていないか確かめたい時は、シークレット/プライベートタブで同じURLを開いて比べてみてください。そちらで直っていれば、原因はサーバーではなく普段のブラウザ側のキャッシュです。</li>' +
-        '<li>それでも直らなければ、<b>Androidは「設定→アプリ→このアプリ→ストレージ→キャッシュを削除」</b>（本のデータは消えません）。<b>iPhoneや他のブラウザ</b>は「サイトデータの削除」を試す（呼び方は異なる）。パソコンは<b>Ctrl+Shift+R</b>（Macは<b>⌘+Shift+R</b>）でも直ることがある</li>' +
-      '</ol>' +
-      '<p style="font-size:13.5px;line-height:1.8;margin:0;">※「キャッシュの削除」は安全ですが、「サイトデータの削除」「データを削除」は登録した本も一緒に消えることがあります。不安な場合は先に「書き出し」でバックアップしてから行ってください。</p>' +
-
-      '<div class="section-label">本のデータを守る（バックアップ）</div>' +
+      '<details class="help-section"><summary><span class="help-title">本のデータを守る（バックアップ）</span><span class="help-preview">「書き出し」ボタンの使い方</span><span class="help-chevron" aria-hidden="true">▾</span></summary><div class="help-body">' +
       '<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin:0 0 10px;">' +
         '<tr><td style="padding:6px 8px;border:1px solid var(--line);background:var(--paper);width:42%;">自動で守られる</td><td style="padding:6px 8px;border:1px solid var(--line);">古いバックアップの誤読み込み／同時編集の上書き</td></tr>' +
         '<tr><td style="padding:6px 8px;border:1px solid var(--line);background:var(--paper);">書き出し以外で守れない</td><td style="padding:6px 8px;border:1px solid var(--line);">端末の故障・紛失・機種変更／サイトデータの削除</td></tr>' +
       '</table>' +
-      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 10px;">「書き出し」で本のデータをファイルに保存できます。機種変更や不具合に備えて定期的に保存すると安心です。消えても「読み込み」で復元できます。<br>※ファイルは暗号化されていないので、共有フォルダへの保存はご注意ください。</p>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 10px;">画面上部の「書き出し」ボタンを押すと、今登録している本のデータが1つのファイルとしてダウンロードされます。機種変更や不具合に備えて定期的に保存すると安心です。消えても「読み込み」ボタンでそのファイルから復元できます。<br>※ファイルは暗号化されていないので、共有フォルダへの保存はご注意ください。</p>' +
       '<label class="check-label" style="font-size:12.5px;"><input type="checkbox" id="backupReminderToggle"'+(isBackupReminderEnabled()?' checked':'')+'> バックアップの案内を表示する</label>' +
+      '</div></details>' +
+
+      '<details class="help-section"><summary><span class="help-title">保存場所について</span><span class="help-preview">端末ごとにデータが分かれる話</span><span class="help-chevron" aria-hidden="true">▾</span></summary><div class="help-body">' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 10px;">本の記録はこの端末・このブラウザだけに保存され、外部には送信されません。家族と端末を共有している場合は見える点にご注意ください。<br>「ホーム画面のアイコン」と「ブラウザで直接開く」は別データになることがあります（特にiPhone）。どちらかに統一するのがおすすめです。</p>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 4px;">すでに両方にデータがある場合、次の手順で1つにまとめられます。</p>' +
+      '<ol style="font-size:13.5px;line-height:1.8;padding-left:20px;margin:0 0 8px;">' +
+        '<li>残したい本がある方を開いて「書き出し」ボタンを押す</li>' +
+        '<li>もう片方にも本があれば同様に「書き出し」</li>' +
+        '<li>統一したい方を開いて「読み込み」ボタンから、前の手順で保存したファイルを選ぶ</li>' +
+      '</ol>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0;">書き出したファイルはiPhoneなら「ファイル」アプリの「ダウンロード」にあります。新しい方が自動で優先されるので古いデータで上書きされる心配はありません。<br>※同じ本を両方に別々に登録していた場合は重複するので、手動で削除してください。</p>' +
+      '</div></details>' +
+
+      '<details class="help-section"><summary><span class="help-title">見た目が新しくならない時は</span><span class="help-preview">キャッシュの消し方</span><span class="help-chevron" aria-hidden="true">▾</span></summary><div class="help-body">' +
+      '<ol style="font-size:13.5px;line-height:1.8;padding-left:20px;margin:0 0 8px;">' +
+        '<li><b>スマホ</b>：アプリを完全に閉じて開き直す（切り替えるだけでなく、一覧から消して開き直す）／<b>パソコン</b>：タブを閉じて開き直す</li>' +
+        '<li>本当に直っていないか確かめたい時は、シークレット/プライベートタブで同じURLを開いて比べてみてください。そちらで直っていれば、原因はサーバーではなく普段のブラウザ側のキャッシュです。</li>' +
+        '<li>それでも直らなければ、<b>Android</b>は「設定→アプリ→このアプリ→ストレージ→キャッシュを削除」（本のデータは消えません）。<b>iPhone・Safari</b>は「設定→Safari→詳細→Webサイトデータ」から該当サイトを削除。<b>iPhone・Chrome</b>はChromeアプリを開き「⋮→設定→プライバシーとセキュリティ→閲覧履歴データの削除」。パソコンは<b>Ctrl+Shift+R</b>（Macは<b>⌘+Shift+R</b>）でも直ることがある</li>' +
+      '</ol>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0;">※「キャッシュの削除」は安全ですが、「サイトデータの削除」「データを削除」は登録した本も一緒に消えることがあります。不安な場合は先に「書き出し」でバックアップしてから行ってください。</p>' +
+      '</div></details>' +
 
       '<div class="actions-row"><button class="btn btn-primary" id="closeHelpBtn">閉じる</button></div>';
     showModal();
@@ -1256,10 +1333,10 @@ textarea{ resize:vertical; min-height:64px; }
         resultsEl.innerHTML = "";
         return;
       }
-      statusEl.textContent = items.length + "件見つかりました。選択すると自動入力されます。";
+      statusEl.textContent = items.length + "件見つかりました。選択すると自動入力されます。" + (lastSearchPartial ? "（一部の検索結果を取得できませんでした。見つからない場合はISBN検索もお試しください）" : "");
       resultsEl.innerHTML = items.map(function(it, i){
         var img = it.cover ? '<img src="'+esc(it.cover)+'" alt="">' : '<div style="width:32px;height:44px;background:var(--line);border-radius:3px;"></div>';
-        return '<div class="lookup-item" data-idx="'+i+'" aria-label="'+esc(it.title||"タイトル不明")+'を選択">'+img+'<div><div class="li-title">'+esc(it.title||"（タイトル不明）")+'</div><div class="li-author">'+esc(it.author||"")+(it.publisher?"／"+esc(it.publisher):"")+'</div></div></div>';
+        return '<div class="lookup-item" data-idx="'+i+'" aria-label="'+esc(it.title||"タイトル不明")+'を選択">'+img+'<div><div class="li-title">'+esc(it.title||"（タイトル不明）")+(it.source?'<span class="li-source">'+esc(it.source)+'</span>':'')+'</div><div class="li-author">'+esc(it.author||"")+(it.publisher?"／"+esc(it.publisher):"")+'</div></div></div>';
       }).join("");
       resultsEl.querySelectorAll(".lookup-item").forEach(function(el, i){
         makeActivatable(el, function(){
@@ -1288,7 +1365,7 @@ textarea{ resize:vertical; min-height:64px; }
       if (!q){ statusEl.textContent = "タイトルか著者名を入力してください。"; return; }
       statusEl.textContent = "検索中...";
       resultsEl.innerHTML = "";
-      var items = await searchGoogleBooks(q);
+      var items = await searchByTitleCombined(q);
       showResults(items);
     });
   }
