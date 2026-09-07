@@ -102,14 +102,21 @@ img{ max-width:100%; }
 .chart-value{ font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; fill:var(--ink); font-size:10.5px; font-weight:500; }
 .chart-tooltip{ position:absolute; pointer-events:none; background:var(--ink); color:var(--paper); font-size:11.5px; padding:4px 8px; border-radius:5px; transform:translate(-50%,-130%); white-space:nowrap; opacity:0; transition:opacity .08s ease; z-index:5; }
 
-.toolbar{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between; margin-bottom:18px; }
-.filter-group{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; flex:1; min-width:0; }
-.action-group{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding-left:14px; border-left:1px solid var(--line); }
-@media (max-width:760px){ .action-group{ border-left:none; padding-left:0; } }
-.tabs{ display:flex; gap:4px; background:var(--paper-raised); border:1px solid var(--line); border-radius:999px; padding:3px; flex-wrap:wrap; }
+.toolbar{ display:flex; flex-wrap:wrap; gap:14px; align-items:flex-start; justify-content:space-between; margin-bottom:18px; }
+.filter-group{ display:flex; flex-direction:column; gap:10px; flex:1; min-width:260px; }
+.quick-filters{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.select-row{ display:flex; gap:8px; }
+.select-row select{ flex:1; min-width:0; }
+.action-group{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding-left:14px; border-left:1px solid var(--line); align-self:center; }
+@media (max-width:760px){
+  .toolbar{ flex-direction:column; align-items:stretch; }
+  .filter-group{ min-width:0; }
+  .action-group{ border-left:none; padding-left:0; align-self:stretch; justify-content:flex-end; }
+}
+.tabs{ display:flex; gap:4px; background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:3px; flex-wrap:wrap; }
 .tab-btn{ border:none; background:transparent; color:var(--ink-soft); padding:6px 13px; border-radius:999px; font-size:12.5px; cursor:pointer; white-space:nowrap; }
 .tab-btn.active{ background:var(--accent); color:var(--accent-ink); }
-.search-group{ display:flex; align-items:center; gap:8px; flex:1; min-width:200px; }
+.search-group{ display:flex; align-items:center; gap:8px; }
 #searchInput{ flex:1; min-width:140px; padding:8px 12px; border-radius:8px; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); font-size:13.5px; }
 .check-label{ display:flex; align-items:center; gap:5px; font-size:12px; color:var(--ink-soft); white-space:nowrap; }
 #searchInput:focus, select:focus, button:focus-visible, input:focus-visible, [role="button"]:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
@@ -141,10 +148,11 @@ select{ padding:8px 10px; border-radius:8px; border:1px solid var(--line); backg
 .pill-paused{ background:var(--line); background:color-mix(in srgb, var(--danger) 20%, transparent); color:var(--danger); }
 .progress-track{ height:4px; border-radius:99px; background:var(--line); overflow:hidden; margin-top:auto; }
 .progress-fill{ height:100%; background:var(--warm); border-radius:99px; }
-.fav-badge{ position:absolute; top:6px; right:6px; font-size:17px; color:#fff; filter:drop-shadow(0 1px 2px rgba(0,0,0,.55)); pointer-events:none; }
+.fav-badge{ position:absolute; top:6px; right:6px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(20,17,11,.6); box-shadow:0 1px 3px rgba(0,0,0,.4); font-size:13px; color:#fff; pointer-events:none; }
 .tag-row{ display:flex; flex-wrap:wrap; gap:4px; }
 .tag-chip{ font-size:10px; padding:1px 8px; border-radius:999px; background:var(--line); color:var(--ink-soft); }
-.fav-toggle, .heart-btn{ border:1px solid var(--line); background:var(--paper-raised); border-radius:999px; padding:6px 14px; font-size:12.5px; font-weight:600; cursor:pointer; color:var(--ink-soft); }
+.fav-toggle{ border:1px solid var(--line); background:var(--paper-raised); border-radius:999px; padding:6px 14px; font-size:12.5px; font-weight:600; cursor:pointer; color:var(--ink-soft); }
+.heart-btn{ border:1px solid var(--line); background:var(--paper-raised); border-radius:50%; width:36px; height:36px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; color:var(--ink-soft); }
 .fav-toggle.active, .heart-btn.on{ border-color:var(--danger); color:var(--danger); background:var(--paper-raised); background:color-mix(in srgb, var(--danger) 12%, var(--paper-raised)); }
 
 .empty{ text-align:center; color:var(--ink-soft); padding:60px 20px; font-size:14px; }
@@ -181,6 +189,10 @@ select{ padding:8px 10px; border-radius:8px; border:1px solid var(--line); backg
 
 .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px 14px; }
 .form-grid .full{ grid-column:1/-1; }
+@media (max-width:480px){
+  .form-grid{ grid-template-columns:1fr; }
+  input[type=date]{ min-width:0; }
+}
 label{ font-size:12px; color:var(--ink-soft); display:block; margin-bottom:4px; }
 input[type=text], input[type=number], input[type=date], textarea{ width:100%; padding:8px 10px; border-radius:7px; border:1px solid var(--line); background:var(--paper); color:var(--ink); font-size:13.5px; font-family:inherit; }
 textarea{ resize:vertical; min-height:64px; }
@@ -228,21 +240,25 @@ textarea{ resize:vertical; min-height:64px; }
 
   <section class="toolbar">
     <div class="filter-group">
-      <div class="tabs" id="statusTabs"></div>
-      <button class="fav-toggle" id="favToggle">♥ お気に入りのみ</button>
+      <div class="quick-filters">
+        <div class="tabs" id="statusTabs"></div>
+        <button class="fav-toggle" id="favToggle" aria-pressed="false">♥ お気に入りのみ</button>
+      </div>
       <div class="search-group">
         <input id="searchInput" type="text" placeholder="タイトル・著者で検索" />
         <label class="check-label"><input type="checkbox" id="searchMemoToggle"> メモも検索</label>
       </div>
-      <select id="tagFilterSelect">
-        <option value="all">すべてのタグ</option>
-      </select>
-      <select id="sortSelect">
-        <option value="updated">更新順</option>
-        <option value="title">タイトル順</option>
-        <option value="start">開始日順</option>
-        <option value="added">追加した順</option>
-      </select>
+      <div class="select-row">
+        <select id="tagFilterSelect">
+          <option value="all">すべてのタグ</option>
+        </select>
+        <select id="sortSelect">
+          <option value="updated">更新順</option>
+          <option value="title">タイトル順</option>
+          <option value="start">開始日順</option>
+          <option value="added">追加した順</option>
+        </select>
+      </div>
     </div>
     <div class="action-group">
       <button class="btn btn-ghost btn-small" id="btnExport" title="バックアップは暗号化されないテキストファイルです。クラウド同期フォルダに保存する際はご注意ください。">書き出し</button>
@@ -254,7 +270,8 @@ textarea{ resize:vertical; min-height:64px; }
 
   <main class="grid" id="bookGrid"></main>
   <p class="empty" id="emptyMsg" hidden></p>
-  <p class="pwa-hint">スマホのブラウザメニューから「ホーム画面に追加」するとアプリのように使えます。本のデータはこの端末・このブラウザだけに保存され、ネットワーク経由で他人や他の端末に送られることはありません。ただし同じ端末・同じブラウザを他人と共有している場合はその人からも見える点にご注意ください。　<button type="button" id="helpLink" style="background:none;border:none;color:var(--accent);text-decoration:underline;cursor:pointer;font-size:inherit;padding:0;">ヘルプ</button></p>
+  <p class="pwa-hint">スマホなら「ホーム画面に追加」でアプリのように使えます。本のデータはこの端末だけに保存されます。</p>
+  <div style="text-align:center;margin-top:10px;"><button type="button" class="btn btn-ghost btn-small" id="helpLink">❓ ヘルプ（保存の仕組み・困った時の対処）</button></div>
 </div>
 
 <button class="fab" id="fabAdd" aria-label="本を追加">+</button>
@@ -429,7 +446,7 @@ textarea{ resize:vertical; min-height:64px; }
       if (!isbn13) ids.forEach(function(i){ if (i.type === "ISBN_10") isbn13 = i.identifier; });
       var cover = (v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail)) || "";
       cover = cover.replace("http://", "https://");
-      return { title:v.title||"", author:(v.authors||[]).join("、"), publisher:v.publisher||"", isbn:isbn13, cover:cover };
+      return { title:v.title||"", author:(v.authors||[]).join("、"), publisher:v.publisher||"", isbn:isbn13, cover:cover, ratingsCount:v.ratingsCount||0 };
     });
   }
 
@@ -458,7 +475,11 @@ textarea{ resize:vertical; min-height:64px; }
         return null;
       }
       if (!data.items) return [];
-      return mapGoogleItems(data.items);
+      var mapped = mapGoogleItems(data.items);
+      // 有名な本・人気な本ほど上に来るよう、評価件数(Googleが持つ数少ない人気の指標)の
+      // 多い順に並び替える。評価が無い本は元の関連度順のまま後ろに残る。
+      mapped.sort(function(a, b){ return b.ratingsCount - a.ratingsCount; });
+      return mapped;
     }catch(e){
       lastLookupError = "通信エラーが発生しました。ネットワーク接続を確認してください。";
       return null;
@@ -1013,22 +1034,35 @@ textarea{ resize:vertical; min-height:64px; }
       '<div class="modal-head"><h2 class="serif" style="margin:0;font-size:19px;">ヘルプ</h2><button class="modal-close" id="closeBtn" aria-label="閉じる">✕</button></div>' +
 
       '<div class="section-label">できること</div>' +
-      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 16px;"><b>タグ</b>：本にジャンルなどの目印を付けて絞り込めます。<b>♥ お気に入り</b>：特に大事な本に印を付けられます。<b>更新の競合検知</b>：他のタブや端末で先に更新されていた場合、上書きしてよいか確認し、必要ならバックアップを自動で残します。</p>' +
+      '<ul style="font-size:13.5px;line-height:1.8;padding-left:20px;margin:0 0 16px;">' +
+        '<li><b>タグ</b>：ジャンルなどで本を絞り込める</li>' +
+        '<li><b>♥ お気に入り</b>：大事な本に印を付けられる</li>' +
+        '<li><b>更新の競合検知</b>：他の端末で先に更新されていたら警告し、必要ならバックアップを自動で残す</li>' +
+      '</ul>' +
 
       '<div class="section-label">保存場所について</div>' +
-      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 10px;">本の記録はこの端末・このブラウザだけに保存され、外部には送信されません。同じ端末を家族などと共有している場合は見える点にご注意ください。<br>また「ホーム画面のアイコン」と「ブラウザで直接開く」のは別データとして扱われることがあります（特にiPhone）。どちらか一方の開き方に統一するのがおすすめです。</p>' +
-      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 16px;">すでに両方にデータがある場合は、①残したい本がある方を開いて「書き出し」→②もう片方にも本があれば同様に「書き出し」→③統一したい方を開いて「読み込み」、で1つにまとめられます。書き出したファイルはiPhoneなら「ファイル」アプリ内の「ダウンロード」に保存され、「読み込み」の時にそこから選べます。読み込みの際、より新しく更新された方が自動的に優先されるので、うっかり古いデータで上書きしてしまう心配はありません。<br>※同じ本を両方に別々に新規登録していた場合（同じ本として認識されないケース）は重複して表示されるので、その分だけ手動で削除してください。</p>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 10px;">本の記録はこの端末・このブラウザだけに保存され、外部には送信されません。家族と端末を共有している場合は見える点にご注意ください。<br>「ホーム画面のアイコン」と「ブラウザで直接開く」は別データになることがあります（特にiPhone）。どちらかに統一するのがおすすめです。</p>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 4px;">すでに両方にデータがある場合、次の手順で1つにまとめられます。</p>' +
+      '<ol style="font-size:13.5px;line-height:1.8;padding-left:20px;margin:0 0 8px;">' +
+        '<li>残したい本がある方を開いて「書き出し」</li>' +
+        '<li>もう片方にも本があれば同様に「書き出し」</li>' +
+        '<li>統一したい方を開いて「読み込み」</li>' +
+      '</ol>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 16px;">書き出したファイルはiPhoneなら「ファイル」アプリの「ダウンロード」にあります。新しい方が自動で優先されるので古いデータで上書きされる心配はありません。<br>※同じ本を両方に別々に登録していた場合は重複するので、手動で削除してください。</p>' +
 
       '<div class="section-label">見た目が新しくならない時は</div>' +
-      '<ol style="font-size:13.5px;line-height:1.9;padding-left:20px;margin:0 0 8px;">' +
-        '<li><b>スマホ</b>：アプリを完全に閉じて開き直す<br><b>パソコン</b>：タブを閉じて開き直す</li>' +
-        '<li>直らなければ、ブラウザの設定にある「サイトデータの削除」「キャッシュの削除」を試す（呼び方はブラウザにより異なります）。パソコンならWindowsは<b>Ctrl+Shift+R</b>、Macは<b>⌘+Shift+R</b>でも直ることがあります。</li>' +
+      '<ol style="font-size:13.5px;line-height:1.8;padding-left:20px;margin:0 0 8px;">' +
+        '<li><b>スマホ</b>：アプリを完全に閉じて開き直す／<b>パソコン</b>：タブを閉じて開き直す</li>' +
+        '<li>直らなければブラウザの設定で「サイトデータの削除」「キャッシュの削除」を試す（呼び方はブラウザにより異なる）。パソコンは<b>Ctrl+Shift+R</b>（Macは<b>⌘+Shift+R</b>）でも直ることがある</li>' +
       '</ol>' +
-      '<p style="font-size:13.5px;line-height:1.8;margin:0;">※サイトデータを消去する操作は、登録した本も一緒に消えることがあります。必ず先に下の「書き出し」でバックアップしてから行ってください。</p>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0;">※サイトデータの削除は登録した本も一緒に消えることがあります。先に「書き出し」でバックアップしてから行ってください。</p>' +
 
       '<div class="section-label">本のデータを守る（バックアップ）</div>' +
-      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 10px;"><b>バックアップを取らないとどうなるか：</b>この端末が壊れる・無くす・機種変更する、またはブラウザの「サイトデータを削除」をすると、記録した本・感想・進捗は元に戻せません。（誤って古いバックアップを読み込む事故や、複数の場所で同時に編集した際の上書きは、アプリが自動で防ぎます。端末側で起きることだけは事前の「書き出し」以外に守る方法がありません。）</p>' +
-      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 10px;">「書き出し」で本のデータをファイルに保存できます。機種変更や不具合に備えて定期的に保存しておくと安心です。消えてしまっても「読み込み」で復元できます。<br>※ファイルは暗号化されていないので、共有フォルダへの保存はご注意ください。</p>' +
+      '<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin:0 0 10px;">' +
+        '<tr><td style="padding:6px 8px;border:1px solid var(--line);background:var(--paper);width:42%;">自動で守られる</td><td style="padding:6px 8px;border:1px solid var(--line);">古いバックアップの誤読み込み／同時編集の上書き</td></tr>' +
+        '<tr><td style="padding:6px 8px;border:1px solid var(--line);background:var(--paper);">書き出し以外で守れない</td><td style="padding:6px 8px;border:1px solid var(--line);">端末の故障・紛失・機種変更／サイトデータの削除</td></tr>' +
+      '</table>' +
+      '<p style="font-size:13.5px;line-height:1.8;margin:0 0 10px;">「書き出し」で本のデータをファイルに保存できます。機種変更や不具合に備えて定期的に保存すると安心です。消えても「読み込み」で復元できます。<br>※ファイルは暗号化されていないので、共有フォルダへの保存はご注意ください。</p>' +
       '<label class="check-label" style="font-size:12.5px;"><input type="checkbox" id="backupReminderToggle"'+(isBackupReminderEnabled()?' checked':'')+'> バックアップの案内を表示する</label>' +
 
       '<div class="actions-row"><button class="btn btn-primary" id="closeHelpBtn">閉じる</button></div>';
@@ -1068,9 +1102,9 @@ textarea{ resize:vertical; min-height:64px; }
       '<div class="form-grid">' +
         '<div class="full">' +
           '<label>タイトル</label>' +
-          '<div style="display:flex;gap:8px;">' +
-            '<input type="text" id="fTitle" value="'+esc(d.title)+'" placeholder="本のタイトル" style="flex:1;">' +
-            '<button type="button" class="btn btn-ghost btn-small" id="btnToggleLookup">🔍 検索して自動入力</button>' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+            '<input type="text" id="fTitle" value="'+esc(d.title)+'" placeholder="本のタイトル" style="flex:1;min-width:0;">' +
+            '<button type="button" class="btn btn-ghost btn-small" id="btnToggleLookup" style="white-space:nowrap;flex-shrink:0;">🔍 検索して自動入力</button>' +
           '</div>' +
         '</div>' +
         (showLookup ? renderLookupBoxHtml() : '') +
@@ -1078,7 +1112,7 @@ textarea{ resize:vertical; min-height:64px; }
         '<div><label>出版社</label><input type="text" id="fPublisher" value="'+esc(d.publisher||"")+'" placeholder="出版社"></div>' +
         '<div><label>ISBN</label><input type="text" id="fIsbn" value="'+esc(d.isbn||"")+'" placeholder="978..."></div>' +
         '<div class="full"><label>ステータス</label><div class="status-select-row" id="statusRow">'+statusOpts+'</div></div>' +
-        '<div class="full"><label>ジャンル・タグ（カンマ区切り、例: 小説, ビジネス, 自己啓発）</label><input type="text" id="fTags" value="'+esc((d.tags||[]).join(", "))+'" placeholder="小説, ビジネス"></div>' +
+        '<div class="full"><label>ジャンル・タグ</label><input type="text" id="fTags" value="'+esc((d.tags||[]).join(", "))+'" placeholder="小説, ビジネス, 自己啓発"></div>' +
         '<div><label>開始日</label><input type="date" id="fStart" value="'+esc(d.startDate||"")+'"></div>' +
         '<div><label>読了日</label><input type="date" id="fEnd" value="'+esc(d.endDate||"")+'"></div>' +
         '<div><label>総ページ数</label><input type="number" id="fPages" min="0" value="'+(d.pages!=null?d.pages:"")+'"></div>' +
@@ -1187,8 +1221,8 @@ textarea{ resize:vertical; min-height:64px; }
     if (document.getElementById("fTags")) d.tags = parseTagsInput(v("fTags"));
     if (document.getElementById("fStart")) d.startDate = v("fStart");
     if (document.getElementById("fEnd")) d.endDate = v("fEnd");
-    if (document.getElementById("fPages")) d.pages = v("fPages") === "" ? null : v("fPages");
-    if (document.getElementById("fCurrent")) d.currentPage = v("fCurrent") === "" ? null : v("fCurrent");
+    if (document.getElementById("fPages")) d.pages = v("fPages") === "" ? null : parseInt(v("fPages"), 10);
+    if (document.getElementById("fCurrent")) d.currentPage = v("fCurrent") === "" ? null : parseInt(v("fCurrent"), 10);
     if (document.getElementById("fSummary1")) d.summary1liner = v("fSummary1");
     if (document.getElementById("fQuotes")) d.quotes = v("fQuotes");
     if (document.getElementById("fPlan")) d.actionPlan = v("fPlan");
